@@ -1,0 +1,15 @@
+---
+env:
+  node: true,
+  mocha: true
+extends:
+  - 'eslint:recommended'
+  - 'plugin:node/recommended'
+plugins:
+  - node
+rules:
+  block-scoped-var: error
+  eqeqeq: error
+  no-warning-comments: warn
+  no-var: error
+  prefer-const: error

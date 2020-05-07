@@ -1,0 +1,17 @@
+**/*.log
+**/node_modules
+.coverage
+.nyc_output
+docs/
+out/
+build/
+bkp/
+*.lock
+.DS_Store
+.vscode
+package-lock.json
+tmp
+*.diff
+*.enc
+secret.*
+
