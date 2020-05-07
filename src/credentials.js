@@ -99,7 +99,7 @@ class Credentials {
     });
 
     child.on('exit', () => {
-      this.encryptedData = fs.readFileSync(tmpFile.name)
+      this.encryptedData = fs.readFileSync(tmpFile.name).toString();
       tmpFile.removeCallback();
     });
   }
@@ -111,10 +111,10 @@ class Credentials {
    */
   get encryptedData() {
     if (fs.existsSync(this.file)) {
-      return fs.readFileSync(this.file)
+      return fs.readFileSync(this.file);
     }
 
-    return ''
+    return '';
   }
 
   /**

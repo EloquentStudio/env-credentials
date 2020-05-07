@@ -7,14 +7,14 @@ function load({
   env,
   masterKey
 } = {}) {
-  const credentials = new Credentials({
+  const secrets = new Credentials({
     env,
     masterKey,
     dir: credentialsDir,
     file: credentialsFile
   }).read()
 
-  for (const [key, value] of Object.entries(credentials)) {
+  for (const [key, value] of Object.entries(secrets)) {
     process.env[key] = value
   }
 }

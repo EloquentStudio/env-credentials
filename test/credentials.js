@@ -182,7 +182,7 @@ describe('Credentials', () => {
   });
 
   describe('read', () => {
-    it("should return empty object if credentials file not present", () => {
+    it("should return empty object if credentials file not present.", () => {
       const obj = credentials.read()
       assert.deepEqual(obj, {})
     });
