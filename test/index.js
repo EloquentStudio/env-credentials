@@ -130,6 +130,24 @@ describe("env-credentials", () => {
       assert.strictEqual(process.env.TEST_EC0000_SECRET_KEY, 'SECRET-1234-1');
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-1');
     });
+
+    it("should load credentials and override", () => {
+      credentials.update(secrets)
+
+      const override = {
+        TEST_EC0000_SECRET_KEY: 'OVERRIDE-SECRET-1234',
+        TEST_EC0000_NEW_KEY: 'NEW-KEY'
+      };
+
+      load({
+        masterKey,
+        override
+      })
+
+      assert.strictEqual(process.env.TEST_EC0000_SECRET_KEY, 'OVERRIDE-SECRET-1234');
+      assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234');
+      assert.strictEqual(process.env.TEST_EC0000_NEW_KEY, 'NEW-KEY');
+    });
   });
 
   describe("edit", () => {

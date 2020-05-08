@@ -11,6 +11,7 @@ const CredentialsManager = require('./credentials_manager');
  * @param {string} [options.env=development] - App environment. Default 'development'.
  * @param {string} [options.masterKey] - Master key for decryption. Default value loaded
  *  from environment variable 'APP_MASTER_KEY'
+ * @param {object|undefined} override - Override env variables.
  * @return {object} Decrypted credentials.
  *
  */
@@ -18,7 +19,8 @@ function load({
   credentialsDir,
   credentialsFile,
   env,
-  masterKey
+  masterKey,
+  override
 } = {}) {
   const secrets = new CredentialsManager({
     env,
@@ -29,6 +31,13 @@ function load({
 
   for (const [key, value] of Object.entries(secrets)) {
     process.env[key] = value
+  }
+
+  if (override) {
+    for (const [key, value] of Object.entries(override)) {
+      process.env[key] = value;
+      secrets[key] = value;
+    }
   }
 
   return secrets;
@@ -55,5 +64,6 @@ function generateKey() {
 module.exports = {
   load,
   edit,
-  generateKey
+  generateKey,
+
 }
