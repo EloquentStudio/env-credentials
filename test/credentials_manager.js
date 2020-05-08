@@ -4,10 +4,10 @@ const path = require('path');
 const {
   generateKey,
 } = require('../src');
-const Credentials = require('../src/credentials');
+const CredentialsManager = require('../src/credentials_manager');
 
 describe('Credentials', () => {
-  let masterKey, credentials;
+  let masterKey, credentialsMgr;
 
   function cleanupFiles() {
     fs.rmdirSync('credentials', {
@@ -21,7 +21,7 @@ describe('Credentials', () => {
     delete process.env.APP_MASTER_KEY;
 
     masterKey = generateKey()
-    credentials = new Credentials({
+    credentialsMgr = new CredentialsManager({
       env: 'test',
       masterKey
     });
@@ -33,63 +33,63 @@ describe('Credentials', () => {
     it('should set defaults', () => {
       process.env.APP_MASTER_KEY = masterKey
 
-      credentials = new Credentials({})
+      credentialsMgr = new CredentialsManager({})
 
-      assert.strictEqual(credentials.env, 'development');
+      assert.strictEqual(credentialsMgr.env, 'development');
       assert.strictEqual(
-        credentials.file,
+        credentialsMgr.file,
         path.join('credentials', 'credentials.dev.json.enc')
       );
-      assert.ok(credentials.encryptor);
+      assert.ok(credentialsMgr.encryptor);
     });
 
     it('should set envionment value from NODE_ENV', () => {
       process.env.NODE_ENV = 'production'
 
-      credentials = new Credentials({
+      credentialsMgr = new CredentialsManager({
         masterKey
       })
 
-      assert.strictEqual(credentials.env, 'production');
+      assert.strictEqual(credentialsMgr.env, 'production');
       assert.strictEqual(
-        credentials.file,
+        credentialsMgr.file,
         path.join('credentials', 'credentials.prod.json.enc')
       );
-      assert.ok(credentials.encryptor)
+      assert.ok(credentialsMgr.encryptor)
     });
 
     it('should set custom credentials directory', () => {
-      credentials = new Credentials({
+      credentialsMgr = new CredentialsManager({
         masterKey,
         dir: 'test'
       })
 
-      assert.strictEqual(credentials.env, 'development')
-      assert.strictEqual(credentials.dir, 'test')
+      assert.strictEqual(credentialsMgr.env, 'development')
+      assert.strictEqual(credentialsMgr.dir, 'test')
       assert.strictEqual(
-        credentials.file,
+        credentialsMgr.file,
         path.join('test', 'credentials.dev.json.enc')
       );
-      assert(credentials.encryptor);
+      assert(credentialsMgr.encryptor);
     });
 
     it('should set credentials file', () => {
-      credentials = new Credentials({
+      credentialsMgr = new CredentialsManager({
         masterKey,
         file: 'credentials.ci-test.json.enc'
       })
 
-      assert.strictEqual(credentials.env, 'development')
+      assert.strictEqual(credentialsMgr.env, 'development')
       assert.strictEqual(
-        credentials.file,
+        credentialsMgr.file,
         path.join('credentials', 'credentials.ci-test.json.enc')
       );
-      assert(credentials.encryptor);
+      assert(credentialsMgr.encryptor);
     });
 
     it('should thow an error if master key not provided', () => {
       assert.throws(() => {
-        new Credentials({})
+        new CredentialsManager({})
       }, {
         message: /APP_MASTER_KEY is not provided./
       });
@@ -109,17 +109,17 @@ describe('Credentials', () => {
       }
 
       for (const [env, file] of Object.entries(envFiles)) {
-        credentials = new Credentials({
+        credentialsMgr = new CredentialsManager({
           env
         });
-        assert.strictEqual(credentials.getFileName(), path.join('credentials', file));
+        assert.strictEqual(credentialsMgr.getFileName(), path.join('credentials', file));
       }
     });
   });
 
   describe('update', () => {
     it('should create credentials file', () => {
-      credentials = new Credentials({
+      credentialsMgr = new CredentialsManager({
         masterKey
       });
       const secrets = {
@@ -127,7 +127,7 @@ describe('Credentials', () => {
         "PASSWOES": "12345"
       };
 
-      credentials.update(secrets);
+      credentialsMgr.update(secrets);
 
       const file = path.join('credentials', 'credentials.dev.json.enc');
       assert.ok(fs.existsSync(file));
@@ -135,11 +135,11 @@ describe('Credentials', () => {
       const data = fs.readFileSync(file);
       assert.ok(data.length > 0);
 
-      assert.deepEqual(credentials.read(), secrets);
+      assert.deepEqual(credentialsMgr.read(), secrets);
     });
 
     it('should update credentials file', () => {
-      credentials = new Credentials({
+      credentialsMgr = new CredentialsManager({
         masterKey
       });
       const secrets = {
@@ -147,19 +147,19 @@ describe('Credentials', () => {
         "PASSWOES": "12345"
       };
 
-      credentials.update(secrets);
-      assert.deepEqual(credentials.read(), secrets);
+      credentialsMgr.update(secrets);
+      assert.deepEqual(credentialsMgr.read(), secrets);
 
       secrets["PORT"] = 9090;
 
-      credentials.update(secrets);
-      const updatedSecrets = credentials.read();
+      credentialsMgr.update(secrets);
+      const updatedSecrets = credentialsMgr.read();
       assert.deepEqual(updatedSecrets, secrets);
       assert.strictEqual(updatedSecrets.PORT, 9090);
     });
 
     it('should throw error if invalid JSON data.', () => {
-      credentials = new Credentials({
+      credentialsMgr = new CredentialsManager({
         masterKey
       });
       const secrets = {
@@ -167,23 +167,23 @@ describe('Credentials', () => {
         "PASSWOES": "12345"
       };
 
-      credentials.update(secrets);
-      assert.deepEqual(credentials.read(), secrets);
+      credentialsMgr.update(secrets);
+      assert.deepEqual(credentialsMgr.read(), secrets);
 
       const newSecrets = `{"KEY1": "VALUE1", "V":}`;
 
       assert.throws(() => {
-        credentials.update(newSecrets);
+        credentialsMgr.update(newSecrets);
       }, {
         message: /Invalid JSON data format./
       });
-      assert.deepEqual(credentials.read(), secrets);
+      assert.deepEqual(credentialsMgr.read(), secrets);
     });
   });
 
   describe('read', () => {
     it("should return empty object if credentials file not present.", () => {
-      const obj = credentials.read()
+      const obj = credentialsMgr.read()
       assert.deepEqual(obj, {})
     });
   });

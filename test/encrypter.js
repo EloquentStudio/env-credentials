@@ -10,10 +10,13 @@ describe('Encryptor', () => {
 
   beforeEach(() => {
     masterKey = generateKey();
-    encryptor = new Encryptor(masterKey);
+    encryptor = new Encryptor({
+      env: 'test',
+      masterKey
+    });
   });
 
-  it('should encrypt and descrypt data', () => {
+  it('should encrypt and decrypt data', () => {
     const creds = {
       'KEY1': 'VALUE1',
       'KEY2': 'VALUE2',
@@ -41,7 +44,10 @@ describe('Encryptor', () => {
       'KEY1': 'VALUE1'
     };
 
-    const encryptedData = (new Encryptor(generateKey())).encrypt(JSON.stringify(creds));
+    const encryptor1 = new Encryptor({
+      masterKey: generateKey()
+    });
+    const encryptedData = encryptor1.encrypt(JSON.stringify(creds));
     assert.ok(typeof encryptedData === 'string');
 
     assert.throws(() => {

@@ -10,6 +10,7 @@ const Encryptor = require('./encryptor');
 /**
  * Default envionment name.
  *
+ * @private
  * @type {string}
  */
 const DEFAULT_ENV = 'development';
@@ -17,16 +18,17 @@ const DEFAULT_ENV = 'development';
 /**
  * Default credentials files directory.
  *
+ * @private
  * @type {string}
  */
-const DEFAULT_CREDENTIALS_DIR = 'credentials'
+const DEFAULT_CREDENTIALS_DIR = 'credentials';
 
 /**
  * Read encrypted credentials file and update encrypted credentials.
  *
- * @class
+ * @private
  */
-class Credentials {
+class CredentialsManager {
   constructor({
     env,
     masterKey,
@@ -34,18 +36,12 @@ class Credentials {
     file
   }) {
     this.env = env || process.env.NODE_ENV || DEFAULT_ENV;
-    this.masterKey = masterKey || process.env.APP_MASTER_KEY;
-
-    if (!this.masterKey) {
-      throw new EnvCredentialsError({
-        env: this.env,
-        message: 'APP_MASTER_KEY is not provided.'
-      });
-    }
-
     this.dir = dir || DEFAULT_CREDENTIALS_DIR;
     this.file = this.getFileName(file);
-    this.encryptor = new Encryptor(this.masterKey);
+    this.encryptor = new Encryptor({
+      env,
+      masterKey: masterKey || process.env.APP_MASTER_KEY
+    });
   }
 
   /**
@@ -167,4 +163,4 @@ class Credentials {
   }
 }
 
-module.exports = Credentials;
+module.exports = CredentialsManager;

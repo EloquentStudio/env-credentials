@@ -1,5 +1,5 @@
 {
-  "name": "app-secret-config",
+  "name": "env-credentials",
   "version": "1.0.0",
   "description": "App secret configuratin manager",
   "engines": {
@@ -8,7 +8,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "gts check && eslint '**/*.js'",
-    "test": "mocha test"
+    "test": "mocha test",
+    "docs": "jsdoc -c .jsdoc.js"
   },
   "keywords": [
     "config",
@@ -29,6 +30,7 @@
     "eslint-plugin-mocha": "^6.3.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.3",
+    "jsdoc": "^3.6.4",
     "mocha": "^7.1.2"
   }
 }

@@ -6,7 +6,7 @@ const {
   edit,
   generateKey,
 } = require("../src");
-const Credentials = require('../src/credentials');
+const CredentialsManager = require('../src/credentials_manager');
 const TEST_ENV_VAR_PREFIX = 'TEST_EC0000';
 const TEST_APP_MASTER_KEY = 'a246298f0f5fac1ea4f9f59fd017d026e87253a353913716b9288bdedcee3ce0';
 
@@ -35,7 +35,7 @@ describe("env-credentials", () => {
     delete process.env.APP_MASTER_KEY;
 
     masterKey = generateKey()
-    credentials = new Credentials({
+    credentials = new CredentialsManager({
       masterKey
     });
     secrets = {
@@ -65,7 +65,7 @@ describe("env-credentials", () => {
     });
 
     it("should load credentials for given envionment", () => {
-      credentials = new Credentials({
+      credentials = new CredentialsManager({
         env: 'test',
         masterKey
       });
@@ -87,7 +87,7 @@ describe("env-credentials", () => {
 
     it("should load credentials using NODE_ENV env variable", () => {
       process.env.NODE_ENV = 'test-env';
-      credentials = new Credentials({
+      credentials = new CredentialsManager({
         masterKey
       });
 
@@ -112,7 +112,7 @@ describe("env-credentials", () => {
         'TEST_EC0000_SECRET_KEY': 'SECRET-1234-L3',
         'TEST_EC0000_API_KEY': 'API-KEY-1234-L3'
       };
-      credentials = new Credentials({});
+      credentials = new CredentialsManager({});
       credentials.update(secrets)
       load({});
 

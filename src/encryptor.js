@@ -1,8 +1,23 @@
 const crypto = require('crypto');
+const {
+  EnvCredentialsError
+} = require('./errors');
 const ALGORITHM = 'aes-256-cbc';
 
+/**
+ * @private
+ */
 class Encryptor {
-  constructor(masterKey) {
+  constructor({
+    env,
+    masterKey
+  }) {
+    if (!masterKey) {
+      throw new EnvCredentialsError({
+        env: env,
+        message: 'APP_MASTER_KEY is not provided.'
+      });
+    }
     this.masterKey = Buffer.from(masterKey, 'hex');
   }
 

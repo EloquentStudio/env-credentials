@@ -21,7 +21,7 @@ Encrypt applicattion envionment credentials manager.
   To use 'export APP_MASTER_KEY=8a44911940b02fbc659277d89af48cb2628b31f6bc63b87b433da46966af6aec'
   ```
 
-  2. Create / Updatte credentials
+  2. Create / Update credentials
   
   Default environment is `development`
   
