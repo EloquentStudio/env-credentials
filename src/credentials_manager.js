@@ -8,22 +8,6 @@ const {
 const Encryptor = require('./encryptor');
 
 /**
- * Default envionment name.
- *
- * @private
- * @type {string}
- */
-const DEFAULT_ENV = 'development';
-
-/**
- * Default credentials files directory.
- *
- * @private
- * @type {string}
- */
-const DEFAULT_CREDENTIALS_DIR = 'credentials';
-
-/**
  * Read encrypted credentials file and update encrypted credentials.
  *
  * @private
@@ -35,8 +19,8 @@ class CredentialsManager {
     dir,
     file
   }) {
-    this.env = env || process.env.NODE_ENV || DEFAULT_ENV;
-    this.dir = dir || DEFAULT_CREDENTIALS_DIR;
+    this.env = env;
+    this.dir = dir;
     this.file = this.getFileName(file);
     this.encryptor = new Encryptor({
       env,
@@ -101,6 +85,23 @@ class CredentialsManager {
   }
 
   /**
+   * Encrypt file.
+   *
+   * @param {string} inputFile
+   */
+  encryptFile(inputFile) {
+    if (!fs.existsSync(inputFile)) {
+      throw new EnvCredentialsError({
+        env: '',
+        message: `'${inputFile}' is not exists.`,
+      })
+    }
+
+    this.encryptedData = fs.readFileSync(inputFile).toString();
+    return this.file;
+  }
+
+  /**
    * Read encrypted credentials file.
    *
    * @return {string}
@@ -127,7 +128,7 @@ class CredentialsManager {
         data = JSON.stringify(data, null, 4)
       }
 
-      if (!fs.existsSync(this.dir)) {
+      if (this.dir && !fs.existsSync(this.dir)) {
         fs.mkdirSync(this.dir);
       }
 
@@ -159,7 +160,11 @@ class CredentialsManager {
       name = `credentials.${names[this.env] || this.env}.json.enc`
     }
 
-    return path.join(this.dir, name);
+    if (this.dir) {
+      return path.join(this.dir, name);
+    }
+
+    return name;
   }
 }
 

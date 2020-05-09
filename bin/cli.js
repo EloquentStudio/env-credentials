@@ -2,7 +2,8 @@
 
 const {
   generateKey,
-  edit
+  edit,
+  encryptFile
 } = require('../src');
 
 require('yargs')
@@ -36,6 +37,27 @@ require('yargs')
       env: argv.environment,
       masterKey: argv.masterkey
     })
+  })
+  .command('encrypt-file [in] [out] [masterkey]', 'Encrypt file and place in credentials directory.', (yargs) => {
+    yargs.positional('input', {
+        type: 'string',
+        describe: 'Input file.'
+      })
+      .positional('output', {
+        type: 'string',
+        describe: 'Encrypted output file.'
+      })
+      .alias('i', 'in')
+      .alias('o', 'out')
+      .alias('m', 'masterkey')
+  }, (argv) => {
+    const outFilePath = encryptFile({
+      inFile: argv.in,
+      outFile: argv.out,
+      masterKey: argv.masterkey
+    });
+
+    console.log(`${argv.in} file encrypted and placed in '${outFilePath}'`);
   })
   .help()
   .argv

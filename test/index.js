@@ -1,16 +1,19 @@
-const assert = require("assert");
+const assert = require('assert');
 const fs = require('fs')
 
 const {
   load,
   edit,
+  encryptFile,
+  read,
   generateKey,
-} = require("../src");
+} = require('../src');
 const CredentialsManager = require('../src/credentials_manager');
-const TEST_ENV_VAR_PREFIX = 'TEST_EC0000';
-const TEST_APP_MASTER_KEY = 'a246298f0f5fac1ea4f9f59fd017d026e87253a353913716b9288bdedcee3ce0';
 
-describe("env-credentials", () => {
+describe('env-credentials', () => {
+  const TEST_ENV_VAR_PREFIX = 'TEST_EC0000';
+  const TEST_APP_MASTER_KEY = 'a246298f0f5fac1ea4f9f59fd017d026e87253a353913716b9288bdedcee3ce0';
+
   function cleanupResources() {
     fs.rmdirSync('credentials', {
       recursive: true
@@ -36,7 +39,9 @@ describe("env-credentials", () => {
 
     masterKey = generateKey()
     credentials = new CredentialsManager({
-      masterKey
+      masterKey,
+      dir: 'credentials',
+      env: 'development'
     });
     secrets = {
       'TEST_EC0000_SECRET_KEY': 'SECRET-1234',
@@ -46,15 +51,15 @@ describe("env-credentials", () => {
 
   afterEach(cleanupResources);
 
-  describe("generateKey", () => {
-    it("should generate new encryption key", () => {
+  describe('generateKey', () => {
+    it('should generate new encryption key', () => {
       const key = generateKey();
-      assert(typeof key === "string");
+      assert(typeof key === 'string');
     });
   });
 
-  describe("load", () => {
-    it("should load credentials with default options", () => {
+  describe('load', () => {
+    it('should load credentials with default options', () => {
       credentials.update(secrets)
       load({
         masterKey
@@ -64,9 +69,10 @@ describe("env-credentials", () => {
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234');
     });
 
-    it("should load credentials for given envionment", () => {
+    it('should load credentials for given envionment', () => {
       credentials = new CredentialsManager({
         env: 'test',
+        dir: 'credentials',
         masterKey
       });
 
@@ -85,10 +91,12 @@ describe("env-credentials", () => {
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-L1');
     });
 
-    it("should load credentials using NODE_ENV env variable", () => {
+    it('should load credentials using NODE_ENV env variable', () => {
       process.env.NODE_ENV = 'test-env';
       credentials = new CredentialsManager({
-        masterKey
+        masterKey,
+        env: process.env.NODE_ENV,
+        dir: 'credentials'
       });
 
       secrets = {
@@ -104,7 +112,7 @@ describe("env-credentials", () => {
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-L2');
     });
 
-    it("should load credentials using NODE_ENV and APP_MASTER_KEY env variables", () => {
+    it('should load credentials using NODE_ENV and APP_MASTER_KEY env variables', () => {
       process.env.NODE_ENV = 'test-env-1';
       process.env.APP_MASTER_KEY = masterKey;
 
@@ -112,7 +120,11 @@ describe("env-credentials", () => {
         'TEST_EC0000_SECRET_KEY': 'SECRET-1234-L3',
         'TEST_EC0000_API_KEY': 'API-KEY-1234-L3'
       };
-      credentials = new CredentialsManager({});
+      credentials = new CredentialsManager({
+        dir: 'credentials',
+        env: process.env.NODE_ENV,
+        masterKey: process.env.APP_MASTER_KEY
+      });
       credentials.update(secrets)
       load({});
 
@@ -120,7 +132,7 @@ describe("env-credentials", () => {
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-L3');
     });
 
-    it("should load credentials from provided file.", () => {
+    it('should load credentials from provided file.', () => {
       load({
         credentialsDir: `${process.cwd()}/test/fixtures`,
         env: 'test',
@@ -131,7 +143,7 @@ describe("env-credentials", () => {
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-1');
     });
 
-    it("should load credentials and override", () => {
+    it('should load credentials and override', () => {
       credentials.update(secrets)
 
       const override = {
@@ -150,8 +162,8 @@ describe("env-credentials", () => {
     });
   });
 
-  describe("edit", () => {
-    it("should edit credentials with default options", () => {
+  describe('edit', () => {
+    it('should edit credentials with default options', () => {
       secrets = {
         'TEST_EC0000_SECRET_KEY': 'SECRET-1234-E1',
         'TEST_EC0000_API_KEY': 'API-KEY-1234-E1'
@@ -170,7 +182,7 @@ describe("env-credentials", () => {
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-E1');
     });
 
-    it("should edit credentials from provided file", () => {
+    it('should edit credentials from provided file', () => {
       process.env.APP_MASTER_KEY = TEST_APP_MASTER_KEY;
       process.env.EDITOR = 'cat';
       process.env.NODE_ENV = 'test';
@@ -185,6 +197,27 @@ describe("env-credentials", () => {
 
       assert.strictEqual(process.env.TEST_EC0000_SECRET_KEY, 'SECRET-1234-1');
       assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-1');
+    });
+  });
+
+  describe('encryptFile', () => {
+    it('should encrypt and read file', () => {
+      const inFile = `${process.cwd()}/test/fixtures/test_credentials.json`;
+      const encryptedFile = encryptFile({
+        inFile,
+        masterKey,
+        credentialsDir: 'credentials'
+      });
+
+      assert.ok(fs.existsSync(encryptedFile));
+
+      const decryptedSecrets = read({
+        masterKey,
+        file: encryptedFile
+      });
+
+      const secrets = JSON.parse(fs.readFileSync(inFile).toString());
+      assert.deepEqual(decryptedSecrets, secrets);
     });
   });
 });

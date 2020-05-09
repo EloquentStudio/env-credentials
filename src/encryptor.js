@@ -35,9 +35,7 @@ class Encryptor {
       .toString()
       .split('--')
       .map(v => Buffer.from(v, 'base64'))
-
     const decipher = crypto.createDecipheriv(ALGORITHM, this.masterKey, iv);
-
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
 
