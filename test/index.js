@@ -9,6 +9,7 @@ const {
   generateKey,
 } = require('../src');
 const CredentialsManager = require('../src/credentials_manager');
+const DummyKmsEncryptor = require('./fixtures/dummy_kms_encryptor');
 
 describe('env-credentials', () => {
   const TEST_ENV_VAR_PREFIX = 'TEST_EC0000';
@@ -218,6 +219,48 @@ describe('env-credentials', () => {
 
       const secrets = JSON.parse(fs.readFileSync(inFile).toString());
       assert.deepEqual(decryptedSecrets, secrets);
+    });
+  });
+
+
+  describe('kms', () => {
+    let dummyKms;
+
+    beforeEach(() => {
+      dummyKms = new DummyKmsEncryptor({
+        masterKey: TEST_APP_MASTER_KEY,
+        env: 'development'
+      })
+    });
+
+    it('encrypt and read', async () => {
+      secrets = {
+        'TEST_EC0000_SECRET_KEY': 'SECRET-1234-KMS1',
+        'TEST_EC0000_API_KEY': 'API-KEY-1234-KMS1'
+      };
+
+      credentials = new CredentialsManager({
+        kms: dummyKms,
+        env: 'development',
+        dir: 'credentials'
+      });
+
+      await credentials.update(secrets);
+
+      process.env.EDITOR = 'cat';
+      await edit({
+        masterKey,
+        kms: dummyKms,
+        env: 'development'
+      });
+
+      await load({
+        masterKey,
+        kms: dummyKms,
+        env: 'development'
+      });
+      assert.strictEqual(process.env.TEST_EC0000_SECRET_KEY, 'SECRET-1234-KMS1');
+      assert.strictEqual(process.env.TEST_EC0000_API_KEY, 'API-KEY-1234-KMS1');
     });
   });
 });

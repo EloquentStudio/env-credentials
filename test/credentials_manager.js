@@ -150,7 +150,7 @@ describe('Credentials', () => {
       assert.strictEqual(updatedSecrets.PORT, 9090);
     });
 
-    it('should throw error if invalid JSON data.', () => {
+    it('should throw error if invalid JSON data.', async () => {
       credentialsMgr = new CredentialsManager({
         masterKey,
         env: 'development',
@@ -166,11 +166,9 @@ describe('Credentials', () => {
 
       const newSecrets = `{"KEY1": "VALUE1", "V":}`;
 
-      assert.throws(() => {
-        credentialsMgr.update(newSecrets);
-      }, {
-        message: /Invalid JSON data format./
-      });
+      let err;
+      await credentialsMgr.update(newSecrets).catch(e => err = e);
+      assert.ok(err.message.includes('Invalid JSON data format.'));
       assert.deepEqual(credentialsMgr.read(), secrets);
     });
   });

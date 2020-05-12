@@ -1,5 +1,9 @@
 const path = require('path');
 const CredentialsManager = require('./credentials_manager');
+const VaultEncryptor = require('./vault_encryptor');
+const {
+  isPromise
+} = require('./util');
 
 /**
  * Default envionment name.
@@ -36,20 +40,35 @@ function load({
   credentialsFile,
   env,
   masterKey,
-  override
+  override,
+  kms
 } = {}) {
   [env, credentialsDir] = setDefaultOptions({
     env,
     credentialsDir
   });
 
-  const secrets = new CredentialsManager({
+  const resp = new CredentialsManager({
     env,
     masterKey,
     dir: credentialsDir,
-    file: credentialsFile
+    file: credentialsFile,
+    kms: kms
   }).read()
 
+  if (isPromise(resp)) {
+    return new Promise((resolve, reject) => {
+      resp.then(secrets => {
+        setEnv(secrets, override);
+        resolve(secrets);
+      }).catch(reject);
+    });
+  }
+
+  return setEnv(resp, override);
+}
+
+function setEnv(secrets, override) {
   for (const [key, value] of Object.entries(secrets)) {
     process.env[key] = value
   }
@@ -69,6 +88,7 @@ function edit({
   credentialsFile,
   env,
   masterKey,
+  kms: kms
 } = {}) {
   [env, credentialsDir] = setDefaultOptions({
     env,
@@ -79,8 +99,9 @@ function edit({
     env,
     masterKey,
     dir: credentialsDir,
-    file: credentialsFile
-  }).update()
+    file: credentialsFile,
+    kms: kms
+  }).update();
 }
 
 function encryptFile({
@@ -101,7 +122,7 @@ function encryptFile({
 }
 
 /**
- * Read encrypted file.s
+ * Read encrypted file.
  *
  * @param {Object} options
  * @param {string|undefined} options.masterKey - Encryption master key.
@@ -145,5 +166,6 @@ module.exports = {
   edit,
   encryptFile,
   read,
-  generateKey
+  generateKey,
+  VaultEncryptor
 };

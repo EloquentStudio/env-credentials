@@ -6,6 +6,9 @@ const {
   EnvCredentialsError
 } = require('./errors');
 const Encryptor = require('./encryptor');
+const {
+  isPromise
+} = require('./util');
 
 /**
  * Read encrypted credentials file and update encrypted credentials.
@@ -17,41 +20,55 @@ class CredentialsManager {
     env,
     masterKey,
     dir,
-    file
+    file,
+    kms
   }) {
     this.env = env;
     this.dir = dir;
     this.file = this.getFileName(file);
-    this.encryptor = new Encryptor({
-      env,
-      masterKey: masterKey || process.env.APP_MASTER_KEY
-    });
+
+    if (kms) {
+      this.encryptor = kms;
+    } else {
+      this.encryptor = new Encryptor({
+        env,
+        masterKey: masterKey || process.env.APP_MASTER_KEY
+      });
+    }
   }
 
   /**
    * Read encrypted credentials file and decrypt.
    *
-   * @return {object}
-   * @throws {EnvCredentialsError} If invalid encryption key.
+   * @return {object|Promise}
+   * @throws {EnvCredentialsError} If invalid encryption key or
+   *  invalid JSON format.
    */
   read() {
+    const encryptedData = this.getEncryptedData();
+    const resp = this.encryptor.decrypt(encryptedData);
+
+    if (isPromise(resp)) {
+      return new Promise((resolve, reject) => {
+        resp.then(v => resolve(this.parseJSON(v.data))).catch(reject);
+      });
+    }
+
+    return this.parseJSON(resp.data);
+  }
+
+  parseJSON(data) {
+    if (!data) {
+      return {};
+    }
+
     try {
-      const encryptedData = this.encryptedData;
-
-      if (!encryptedData.length) {
-        return {};
-      }
-
-      const {
-        data
-      } = this.encryptor.decrypt(encryptedData);
-
-      return JSON.parse(data)
-    } catch (e) {
+      return JSON.parse(data);
+    } catch (err) {
       throw new EnvCredentialsError({
         env: this.env,
-        message: 'Invalid encryption key or encrypted data is corrupted.',
-        origMessage: e.message
+        message: 'Invalid JSON format in decrypted data.',
+        origMessage: err.message
       })
     }
   }
@@ -59,16 +76,16 @@ class CredentialsManager {
   /**
    *  Update credentials file.
    *
-   * @param {object|undefined} secrets
+   * @param {object|undefined|Promise} secrets
    */
-  update(secrets = null) {
+  async update(secrets = null) {
     // Direct update if credentials data is provided, without using editor.
     if (secrets) {
-      this.encryptedData = secrets
-      return
+      await this.setEncryptedData(secrets);
+      return;
     }
 
-    const obj = this.read();
+    const obj = await this.read();
     const tmpFile = tmp.fileSync();
 
     fs.writeFileSync(tmpFile.name, JSON.stringify(obj, null, 4));
@@ -78,8 +95,10 @@ class CredentialsManager {
       stdio: 'inherit'
     });
 
-    child.on('exit', () => {
-      this.encryptedData = fs.readFileSync(tmpFile.name).toString();
+    child.on('exit', async () => {
+      await this.setEncryptedData(
+        fs.readFileSync(tmpFile.name).toString('utf8')
+      );
       tmpFile.removeCallback();
     });
   }
@@ -97,7 +116,7 @@ class CredentialsManager {
       })
     }
 
-    this.encryptedData = fs.readFileSync(inputFile).toString();
+    this.setEncryptedData(fs.readFileSync(inputFile).toString('utf8'));
     return this.file;
   }
 
@@ -106,9 +125,9 @@ class CredentialsManager {
    *
    * @return {string}
    */
-  get encryptedData() {
+  getEncryptedData() {
     if (fs.existsSync(this.file)) {
-      return fs.readFileSync(this.file);
+      return fs.readFileSync(this.file).toString('utf8');
     }
 
     return '';
@@ -117,10 +136,10 @@ class CredentialsManager {
   /**
    * Write encrypted credentials to file.
    *
-   * @param {object=|string=} data
+   * @param {object|string} data
    * @throws {EnvCredentialsError} If invalid JSON data format.
    */
-  set encryptedData(data) {
+  setEncryptedData(data) {
     try {
       if (typeof data === 'string') {
         JSON.parse(data);
@@ -132,7 +151,18 @@ class CredentialsManager {
         fs.mkdirSync(this.dir);
       }
 
-      fs.writeFileSync(this.file, this.encryptor.encrypt(data));
+      const resp = this.encryptor.encrypt(data);
+
+      if (isPromise(resp)) {
+        return new Promise((resolve, reject) => {
+          resp.then(data => {
+            fs.writeFileSync(this.file, data);
+            resolve();
+          }).catch(reject);
+        });
+      }
+
+      fs.writeFileSync(this.file, resp);
     } catch (e) {
       throw new EnvCredentialsError({
         env: this.env,

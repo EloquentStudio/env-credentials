@@ -1,13 +1,10 @@
 const crypto = require('crypto');
 const {
   EnvCredentialsError
-} = require('./errors');
+} = require('../../src/errors');
 const ALGORITHM = 'aes-256-cbc';
 
-/**
- * @private
- */
-class Encryptor {
+class DummyKmsEncryptor {
   constructor({
     env,
     masterKey
@@ -22,6 +19,26 @@ class Encryptor {
   }
 
   encrypt(data) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const value = this.encryptSync(data);
+        resolve(value);
+      }, 200);
+    });
+  }
+
+  decrypt(encryptedData) {
+    const resp = new Promise((resolve) => {
+      setTimeout(() => {
+        const value = this.decryptSync(encryptedData);
+        resolve(value);
+      }, 200);
+    });
+
+    return resp;
+  }
+
+  encryptSync(data) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(ALGORITHM, this.masterKey, iv);
 
@@ -30,7 +47,7 @@ class Encryptor {
     return `${encrypted.toString('base64')}--${iv.toString('base64')}`;
   }
 
-  decrypt(encryptedDataWithIV) {
+  decryptSync(encryptedDataWithIV) {
     if (!encryptedDataWithIV.length) {
       return {
         data: ''
@@ -48,7 +65,7 @@ class Encryptor {
 
       return {
         iv,
-        data: decrypted.toString('utf8')
+        data: decrypted.toString()
       }
     } catch (err) {
       throw new EnvCredentialsError({
@@ -60,4 +77,4 @@ class Encryptor {
   }
 }
 
-module.exports = Encryptor
+module.exports = DummyKmsEncryptor;
