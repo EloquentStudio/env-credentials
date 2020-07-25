@@ -15,4 +15,6 @@ tmp
 *.enc
 secret.*
 credentials/
-
+.eslintignore
+.prettierignore
+.eslintrc.yml

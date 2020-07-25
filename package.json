@@ -1,7 +1,7 @@
 {
   "name": "env-credentials",
-  "version": "1.0.0",
-  "description": "App secret configuratin manager",
+  "version": "0.0.1",
+  "description": "App secret configuration and environment variables manager",
   "engines": {
     "node": ">=8.10.0"
   },
@@ -13,7 +13,9 @@
   },
   "keywords": [
     "config",
-    "secret-manager"
+    "secret-manager",
+    "credentials",
+    "env-vars"
   ],
   "author": "Jiren Patel",
   "license": "MIT",
