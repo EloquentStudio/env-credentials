@@ -5,6 +5,8 @@
   "engines": {
     "node": ">=8.10.0"
   },
+  "repository": "https://github.com/EloquentStudio/env-credentials.git",
+  "homepage": "https://github.com/EloquentStudio/env-credentials",
   "main": "src/index.js",
   "scripts": {
     "lint": "gts check && eslint '**/*.js'",
