@@ -124,7 +124,7 @@ function read({
 }
 
 function generateKey() {
-  return require('crypto').randomBytes(32).toString('hex');
+  return require('crypto').randomBytes(16).toString('hex');
 }
 
 function setDefaultOptions({

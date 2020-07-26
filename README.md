@@ -37,6 +37,6 @@ Encrypt applicattion envionment credentials manager.
   
   Export `APP_MASTER_KEY` and `NODE_ENV`. `NODE_ENV` is default to `development`.
   
-  ```javascrip
+  ```javascript
     require('env-credentials').load()
   ```

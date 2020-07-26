@@ -24,7 +24,7 @@ class CredentialsManager {
     this.file = this.getFileName(file);
     this.encryptor = new Encryptor({
       env,
-      masterKey: masterKey || process.env.APP_MASTER_KEY
+      masterKey: masterKey || process.env.APP_MASTER_KEY || this.getKeyFromFile()
     });
   }
 
@@ -165,6 +165,21 @@ class CredentialsManager {
     }
 
     return name;
+  }
+
+  /**
+   * Read key from file if exists.
+   *
+   * @return {string}
+   */
+  getKeyFromFile() {
+    const keyFile = path.join(this.dir || '.', `${this.env}.key`);
+
+    if (fs.existsSync(keyFile)) {
+      return fs.readFileSync(keyFile).toString().trim();
+    }
+
+    return null;
   }
 }
 
