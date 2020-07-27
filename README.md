@@ -1,6 +1,6 @@
 ### env-credentials
 
-Encrypt applicattion envionment credentials manager.
+Encrypt applicattion environment credentials manager and export ENV varaiable on load.
 
 #### How to use?
 
@@ -40,3 +40,8 @@ Encrypt applicattion envionment credentials manager.
   ```javascript
     require('env-credentials').load()
   ```
+
+  If do not want to export `APP_MASTER_KEY` for development or other env, put key as a file in `credentials` directory.
+  This will be helpful in development environment.
+
+  i.e `credentials/development.key` or  `credentials/production.key` or `credentials/staging.key`
