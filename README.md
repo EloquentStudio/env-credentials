@@ -1,8 +1,12 @@
 ### env-credentials
 
-Encrypt JSON object of application environment credentials and configuration manager and export ENV varaiable on load.
+Application environment credentials manager.
+
+Store application environment credentials in encrypted JSON file and load and export as   environment variables.
 
 #### How to use?
+
+  [![asciicast](https://asciinema.org/a/351199.svg)](https://asciinema.org/a/351199)
 
   Help command.
 
@@ -67,6 +71,8 @@ Encrypt JSON object of application environment credentials and configuration man
   ```
 
   3. Load credentials
+
+  If `APP_MASTER_KEY` environment variable is not exported then key will be loaded from key file.
 
   Export `APP_MASTER_KEY` and `NODE_ENV`. `NODE_ENV` is default to `development`.
 
