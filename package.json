@@ -1,6 +1,6 @@
 {
   "name": "env-credentials",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "App secret configuration and environment variables manager",
   "engines": {
     "node": ">=8.10.0"
