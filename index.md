@@ -1,37 +1,86 @@
-## Welcome to GitHub Pages
+### env-credentials
 
-You can use the [editor on GitHub](https://github.com/EloquentStudio/env-credentials/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+Application environment credentials manager.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Store application environment credentials in encrypted JSON file and load and export as   environment variables.
 
-### Markdown
+#### How to use?
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+  [![asciicast](https://asciinema.org/a/351199.svg)](https://asciinema.org/a/351199)
 
-```markdown
-Syntax highlighted code block
+  Help command.
 
-# Header 1
-## Header 2
-### Header 3
+  ```shell
+  npx env-credentials --help
+  ```
 
-- Bulleted
-- List
+  1. Generate master key ans save into environment specific file.
 
-1. Numbered
-2. List
+  Default environment is development.
 
-**Bold** and _Italic_ and `Code` text
+  ```shell
+  npx env-credentials master-key
 
-[Link](url) and ![Image](src)
-```
+  Saved in a credentials directory credentials/development.key
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+  8a44911940b02fbc659277d89af48cb2628b31f6bc63b87b433da46966af6aec
 
-### Jekyll Themes
+  To use 'export APP_MASTER_KEY=8a44911940b02fbc659277d89af48cb2628b31f6bc63b87b433da46966af6aec'
+  OR Save in a credentials directory i.e credentials/development.key
+  ```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/EloquentStudio/env-credentials/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+  Generate environment specific key and save.
+  ```shell
+  npx env-credentials master-key -e production
 
-### Support or Contact
+  Saved in a credentials directory credentials/production.key
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+  48260a6dbe1bc8173e1ef5486ae30805e024500e7142ee8c7096536eab319bf7
+
+  To use 'export APP_MASTER_KEY=48260a6dbe1bc8173e1ef5486ae30805e024500e7142ee8c7096536eab319bf7'
+  OR Save in a credentials directory i.e credentials/production.key
+  ```
+
+  Generate key without saving it.
+
+  ```shell
+  npx env-credentials master-key -e production -s false
+  ```
+
+
+  2. Create / Update credentials
+
+  Default environment is `development`
+
+  ```shell
+  npx env-credentials edit # loads app master key from 'credentials/development.key' file.
+  ```
+
+  ```shell
+  APP_MASTER_KEY=8a44911940b02fbc659277d89af48cb2628b31f6bc63b87b433da46966af6aec npx env-credentials edit
+  ```
+
+  Edit by environment option.
+
+  ```shell
+  npx env-credentials edit -e production # loads app master key from 'credentials/production.key' file.
+  ```
+
+  ```shell
+  APP_MASTER_KEY=252949256031ababb811706b4dcf662577e1b19d1980ef0c8b1bdfef13feba36 npx env-credentials edit -e production
+  ```
+
+  3. Load credentials
+
+  If `APP_MASTER_KEY` environment variable is not exported then key will be loaded from key file.
+
+  Export `APP_MASTER_KEY` and `NODE_ENV`. `NODE_ENV` is default to `development`.
+
+  ```javascript
+    require('env-credentials').load()
+  ```
+
+  If do not want to export `APP_MASTER_KEY` for development or other env, put key as a file in `credentials` directory.
+  This will be helpful in development environment.
+
+  i.e `credentials/development.key` or  `credentials/production.key` or `credentials/staging.key`
